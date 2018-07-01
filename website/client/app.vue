@@ -436,6 +436,7 @@ export default {
     this.$root.$off('selectMembersModal::showItem');
   },
   mounted () {
+    console.log('Yo, from the new docker');
     // Remove the index.html loading screen and now show the inapp loading
     const loadingScreen = document.getElementById('loading-screen');
     if (loadingScreen) document.body.removeChild(loadingScreen);
