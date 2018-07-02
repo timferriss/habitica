@@ -13,8 +13,35 @@ export async function getUserInbox (user, asArray = true) {
 
     return orderBy(messages, ['timestamp'], ['desc']);
   } else {
-    messages.forEach(msg => messagesObj[msg._id] = msg.toJSON());
+    messages.forEach(msg => messagesObj[msg._id] = msg);
 
     return messagesObj;
   }
+}
+
+export async function deleteMsg (user, messageId) {
+  if (user.inbox.messages[messageId]) { // compatibility
+    delete user.inbox.messages[messageId];
+    user.markModified(`inbox.messages.${messageId}`);
+    await user.save();
+  } else {
+    const message = await Inbox.findOne({_id: messageId, ownerId: user._id }).exec();
+    if (!message) return false;
+    await Inbox.remove({_id: message._id, ownerId: user._id}).exec();
+  }
+
+  return true;
+}
+
+export async function clearPMs (user) {
+  user.inbox.newMessages = 0;
+
+  // compatibility
+  user.inbox.messages = {};
+  user.markModified('inbox.messages');
+
+  await Promise.all([
+    user.save(),
+    Inbox.remove({ownerId: user._id}).exec(),
+  ]);
 }
